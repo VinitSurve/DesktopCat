@@ -268,14 +268,38 @@ export function PetView() {
   // ─── Listen for Pause Toggle from Tray ───────────────────────────────
 
   useEffect(() => {
-    const unlisten = listen<boolean>('pet-pause-toggle', (event) => {
+    const unlistenPause = listen<boolean>('pet-pause-toggle', (event) => {
       setIsPaused(event.payload);
+    });
+    
+    const unlistenAiStart = listen('ai_chat_started', () => {
+      if (behaviorRef.current) {
+        behaviorRef.current.reactToEvent('AI_STARTED');
+        setPetState(behaviorRef.current.state);
+      }
+    });
+
+    const unlistenAiSuccess = listen('ai_chat_success', () => {
+      if (behaviorRef.current) {
+        behaviorRef.current.reactToEvent('AI_SUCCESS');
+        setPetState(behaviorRef.current.state);
+      }
+    });
+
+    const unlistenAiError = listen('ai_chat_error', () => {
+      if (behaviorRef.current) {
+        behaviorRef.current.reactToEvent('AI_FAILED');
+        setPetState(behaviorRef.current.state);
+      }
     });
 
     return () => {
-      unlisten.then((fn) => fn());
+      unlistenPause.then((fn) => fn());
+      unlistenAiStart.then((fn) => fn());
+      unlistenAiSuccess.then((fn) => fn());
+      unlistenAiError.then((fn) => fn());
     };
-  }, [setIsPaused]);
+  }, [setIsPaused, setPetState]);
 
   // ─── Main Update Loop ───────────────────────────────────────────────
 
@@ -472,6 +496,9 @@ export function PetView() {
         case 'ai_assistant':
           setAiMenuOpen(true);
           break;
+        case 'ask_pixelpaw':
+          invoke('open_ask_pixelpaw').catch(() => {});
+          break;
         case 'ocr_screen':
           invoke('open_ocr_selection_window').catch(() => {});
           break;
@@ -534,6 +561,11 @@ export function PetView() {
   }, [setPetState]);
 
   const handleAiAction = useCallback(async (action: string) => {
+    if (action === 'ask_pixelpaw') {
+      invoke('open_ask_pixelpaw').catch(() => {});
+      return;
+    }
+
     let stage = "START";
 
     try {

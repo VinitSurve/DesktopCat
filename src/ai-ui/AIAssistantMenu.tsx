@@ -9,6 +9,7 @@ interface Props {
 }
 
 const AI_ACTIONS = [
+  { id: 'ask_pixelpaw', label: 'Ask PixelPaw', icon: '🐱' },
   { id: 'fix_grammar', label: 'Fix Grammar', icon: '📝' },
   { id: 'rewrite', label: 'Rewrite', icon: '🔄' },
   { id: 'summarize', label: 'Summarize', icon: '📋' },

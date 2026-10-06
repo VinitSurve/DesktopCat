@@ -446,6 +446,33 @@ fn open_ocr_selection_window(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
+fn open_ask_pixelpaw(app: tauri::AppHandle) {
+    if let Some(win) = app.get_webview_window("ask_pixelpaw") {
+        win.show().ok();
+        win.set_focus().ok();
+    } else {
+        match tauri::WebviewWindowBuilder::new(
+            &app,
+            "ask_pixelpaw",
+            tauri::WebviewUrl::App("/?windowLabel=ask_pixelpaw".into()),
+        )
+        .title("Ask PixelPaw")
+        .inner_size(450.0, 600.0)
+        .min_inner_size(400.0, 500.0)
+        .resizable(true)
+        .decorations(true)
+        .build()
+        {
+            Ok(win) => {
+                win.show().ok();
+                win.set_focus().ok();
+            }
+            Err(e) => println!("Ask PixelPaw: creation failed with error: {:?}", e),
+        }
+    }
+}
+
+#[tauri::command]
 fn open_ocr_result_window(app: tauri::AppHandle) {
     do_open_ocr_result_window(app);
 }
@@ -923,6 +950,7 @@ pub fn run() {
             open_settings_window,
             show_reminder_window,
             test_reminder_window,
+            open_ask_pixelpaw,
             open_ai_result_window,
             open_ocr_selection_window,
             open_ocr_result_window,

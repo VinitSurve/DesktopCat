@@ -11,6 +11,7 @@ import { AIResultPage } from './ai-ui/AIResultPage';
 import { OCRSelectionPage } from './screen/OCRSelectionPage';
 import { OCRResultPage } from './screen/OCRResultPage';
 import { ReminderBubblePage } from './assistant/ReminderBubblePage';
+import { AskPixelPawPage } from './assistant/AskPixelPawPage';
 import './App.css';
 
 export default function App() {
@@ -40,6 +41,10 @@ export default function App() {
 
   if (windowLabel === 'reminder_window' || windowLabel === 'reminder_bubble') {
     return <ReminderBubblePage />;
+  }
+
+  if (windowLabel === 'ask_pixelpaw') {
+    return <AskPixelPawPage />;
   }
 
   // Default: pet window

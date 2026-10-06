@@ -7,9 +7,17 @@ use crate::keychain::get_gemini_key;
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct AIMessage {
+    pub role: String, // "user", "assistant" (or "model" for Gemini)
+    pub content: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct AIRequest {
     pub prompt: String,
     pub system_prompt: Option<String>,
+    pub messages: Option<Vec<AIMessage>>,
     pub model: Option<String>,
     pub provider: String, // "OLLAMA" or "GEMINI"
     pub temperature: Option<f32>,
@@ -54,10 +62,20 @@ pub async fn ai_generate(request: AIRequest) -> Result<AIResponse, String> {
                     content: sp.clone(),
                 });
             }
-            messages.push(OllamaMessage {
-                role: "user".to_string(),
-                content: request.prompt,
-            });
+            if let Some(history) = &request.messages {
+                for m in history {
+                    messages.push(OllamaMessage {
+                        role: m.role.clone(),
+                        content: m.content.clone(),
+                    });
+                }
+            }
+            if !request.prompt.is_empty() {
+                messages.push(OllamaMessage {
+                    role: "user".to_string(),
+                    content: request.prompt.clone(),
+                });
+            }
 
             let body = OllamaRequest {
                 model: model.clone(),
@@ -111,12 +129,27 @@ pub async fn ai_generate(request: AIRequest) -> Result<AIResponse, String> {
                 role: String,
             }
 
-            let contents = vec![GeminiContent {
-                role: "user".to_string(),
-                parts: vec![GeminiPart {
-                    text: request.prompt,
-                }],
-            }];
+            let mut contents = Vec::new();
+            if let Some(history) = &request.messages {
+                for m in history {
+                    let role = if m.role == "assistant" { "model" } else { "user" };
+                    contents.push(GeminiContent {
+                        role: role.to_string(),
+                        parts: vec![GeminiPart {
+                            text: m.content.clone(),
+                        }],
+                    });
+                }
+            }
+            
+            if !request.prompt.is_empty() {
+                contents.push(GeminiContent {
+                    role: "user".to_string(),
+                    parts: vec![GeminiPart {
+                        text: request.prompt.clone(),
+                    }],
+                });
+            }
 
             let mut system_instruction = None;
             if let Some(sp) = &request.system_prompt {

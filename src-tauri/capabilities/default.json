@@ -10,7 +10,8 @@
     "ocr_selection",
     "ocr_result",
     "reminder_bubble",
-    "reminder_window"
+    "reminder_window",
+    "ask_pixelpaw"
   ],
   "permissions": [
     "core:default",
