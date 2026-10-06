@@ -23,6 +23,7 @@ export const MIN_STATE_DURATIONS: Record<PetState, number> = {
   LICKING_PAW: 4000,
   POUNCING: 1000,
   STARTLED: 1500,
+  REMINDING: 5000,
 };
 
 export const BEHAVIOR_WEIGHTS = {

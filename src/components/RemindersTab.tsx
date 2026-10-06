@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { invoke } from '@tauri-apps/api/core';
 import { useReminderStore } from '../reminders/ReminderStore';
 import type { Reminder, ReminderType } from '../reminders/ReminderTypes';
 
@@ -54,6 +55,16 @@ export function RemindersTab() {
         <button onClick={() => setShowAdd(true)} className="btn-primary">+ Add Reminder</button>
         <button onClick={() => handlePreset('Drink Water', 'INTERVAL', 90)} className="btn-secondary">Preset: Water</button>
         <button onClick={() => handlePreset('Take a Break', 'INTERVAL', 60)} className="btn-secondary">Preset: Break</button>
+      </div>
+
+      <div style={{ marginBottom: '16px', background: 'rgba(255, 69, 58, 0.1)', padding: '12px', borderRadius: '8px' }}>
+        <h4 style={{ margin: '0 0 8px 0', color: '#ff453a' }}>Diagnostic Test</h4>
+        <button 
+          onClick={() => invoke('test_reminder_window')} 
+          style={{ padding: '8px 16px', background: '#ff453a', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+        >
+          TEST PIXELPAW REMINDER
+        </button>
       </div>
 
       {showAdd && (

@@ -226,6 +226,51 @@ fn get_all_monitors(window: tauri::Window) -> Vec<serde_json::Value> {
 }
 
 #[tauri::command]
+fn show_reminder_window(app: tauri::AppHandle, url_params: String, x: f64, y: f64) {
+    println!("[REMINDER WINDOW] creating at {}, {}", x, y);
+    
+    // First, close it if it already exists, to ensure fresh state/URL
+    if let Some(win) = app.get_webview_window("reminder_window") {
+        win.close().ok();
+    }
+    
+    let url = format!("/?{}", url_params);
+    
+    match WebviewWindowBuilder::new(
+        &app,
+        "reminder_window",
+        WebviewUrl::App(url.into()),
+    )
+    .title("PixelPaw Reminder")
+    .inner_size(240.0, 120.0) // smaller bubble
+    .position(x, y)
+    .always_on_top(true)
+    .decorations(false) // frameless
+    .transparent(true)  // transparent background
+    .resizable(false)
+    .visible(true)
+    .build()
+    {
+        Ok(win) => {
+            println!("[REMINDER WINDOW] created");
+            win.show().ok();
+            println!("[REMINDER WINDOW] shown");
+            win.set_focus().ok();
+            println!("[REMINDER WINDOW] focused");
+        }
+        Err(e) => {
+            println!("[REMINDER WINDOW ERROR] failed to create window: {:?}", e);
+        }
+    }
+}
+
+#[tauri::command]
+fn test_reminder_window(app: tauri::AppHandle) {
+    let url_params = "windowLabel=reminder_window&title=Drink%20Water&message=Water%20time%3F&icon=%F0%9F%92%A7&id=test-id&rtype=REMINDER".to_string();
+    show_reminder_window(app, url_params, 100.0, 100.0);
+}
+
+#[tauri::command]
 fn open_settings_window(app: tauri::AppHandle) {
     println!("SETTINGS: create requested");
 
@@ -876,6 +921,8 @@ pub fn run() {
             get_monitor_info,
             get_all_monitors,
             open_settings_window,
+            show_reminder_window,
+            test_reminder_window,
             open_ai_result_window,
             open_ocr_selection_window,
             open_ocr_result_window,

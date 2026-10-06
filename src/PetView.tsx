@@ -24,7 +24,7 @@ import { useReminderStore } from './reminders/ReminderStore';
 import { useTimerStore } from './timers/TimerStore';
 import { AssistantEventBus } from './assistant/AssistantEventBus';
 import { AssistantReactionSystem } from './assistant/AssistantReactionSystem';
-import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+// import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
 import type { PetState } from './types';
 
 export function PetView() {
@@ -120,47 +120,44 @@ export function PetView() {
     let sequenceTimeouts: number[] = [];
     
     const showBubble = async (data: any) => {
-      let win = await WebviewWindow.getByLabel('reminder_bubble');
-      
-      const pos = await getCurrentWindow().outerPosition();
-      const monitor = await currentMonitor();
-      
-      let x = pos.x + 240; // Right of the cat by default
-      const y = pos.y;
-      
-      // If we're near the right edge of the screen, show it on the left
-      if (monitor && (x + 260) > monitor.size.width) {
-        x = pos.x - 260; // Left of the cat
-      }
-      
-      if (!win) {
-        win = new WebviewWindow('reminder_bubble', {
-          url: '/?windowLabel=reminder_bubble',
-          title: 'PixelPaw Reminder',
-          width: 260,
-          height: 140,
-          x: x,
-          y: y,
-          transparent: true,
-          decorations: false,
-          alwaysOnTop: true,
-          skipTaskbar: true,
-          resizable: false,
-        });
-      } else {
-        win.setPosition({ type: 'Physical', x, y } as any);
-        win.show();
-      }
+      console.log('[PIXELPAW REMINDER] Calling Rust show_reminder_window');
+      try {
+        const appWindow = getCurrentWindow();
+        const pos = await appWindow.outerPosition();
+        const size = await appWindow.outerSize();
+        const monitor = await currentMonitor();
+        
+        let targetX = pos.x + size.width;
+        let targetY = pos.y - 120; // Bubble above
 
-      // We need to wait for the window to be ready to receive events
-      let unlistenReady: (() => void) | null = null;
-      listen('bubble_ready', () => {
-        emit('set_bubble_data', data);
-        if (unlistenReady) unlistenReady();
-      }).then(f => unlistenReady = f);
-      
-      // Also emit immediately in case it's already open
-      setTimeout(() => emit('set_bubble_data', data), 500);
+        if (monitor) {
+          const rightEdge = monitor.position.x + monitor.size.width;
+          if (targetX + 240 > rightEdge) {
+            // Not enough room on the right, place on the left
+            targetX = pos.x - 240;
+          }
+          if (targetY < monitor.position.y) {
+            targetY = pos.y + size.height; // Place below if hitting top edge
+          }
+        }
+
+        const qs = new URLSearchParams({ 
+          windowLabel: 'reminder_window', 
+          title: data.title || 'Diagnostic Title', 
+          message: data.message || 'Water time?', 
+          icon: data.icon || '💧', 
+          id: data.id || 'diagnostic-id', 
+          rtype: data.type || 'REMINDER' 
+        }).toString();
+
+        await invoke('show_reminder_window', {
+          urlParams: qs,
+          x: targetX,
+          y: targetY
+        });
+      } catch (err) {
+        console.error('[PIXELPAW REMINDER] FAILED to invoke Rust command:', err);
+      }
     };
 
     const runReactionSequence = (seq: PetState[], totalDurationMs: number) => {
@@ -231,9 +228,6 @@ export function PetView() {
     });
 
     const actionListener = listen<{action: string, id: string, type: string, minutes?: number}>('bubble_action', async (e) => {
-      const win = await WebviewWindow.getByLabel('reminder_bubble');
-      if (win) win.hide();
-      
       const { action, id, type, minutes } = e.payload;
       
       if (type === 'REMINDER') {
@@ -255,7 +249,7 @@ export function PetView() {
           behaviorRef.current.forceState('IDLE');
           setPetState('IDLE');
           behaviorRef.current.setLocked(false);
-        }, 3000);
+        }, 1500);
       } else {
         behaviorRef.current.forceState('IDLE');
         setPetState('IDLE');

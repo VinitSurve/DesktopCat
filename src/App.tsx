@@ -38,7 +38,7 @@ export default function App() {
     return <OCRResultPage />;
   }
 
-  if (windowLabel === 'reminder_bubble') {
+  if (windowLabel === 'reminder_window' || windowLabel === 'reminder_bubble') {
     return <ReminderBubblePage />;
   }
 

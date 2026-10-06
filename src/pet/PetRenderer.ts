@@ -490,6 +490,31 @@ function drawStartled(g: PixelGrid) {
   drawHead(g, 0, -4, false, 'surprised');
 }
 
+
+function drawReminding(g: PixelGrid, d: DrawContext) {
+  // Attentive pose, facing forward (or slightly forward)
+  // Subtle body bounce
+  const bounce = Math.sin(d.time / 200) > 0 ? 1 : 0;
+  
+  // Subtle tail movement
+  drawTail(g, 4, 0, Math.sin(d.time / 400) * 2);
+  
+  // Body (sitting upright/attentive)
+  g.rect(-6, 8 - bounce, 12, 8, COLORS.orangeDark); // Legs
+  g.rect(-9, - bounce, 18, 10, COLORS.orange);
+  g.rect(-7, 3 - bounce, 14, 7, COLORS.cream);
+  
+  // Optional raised paw (right paw raised slightly)
+  g.rect(4, 2 - bounce, 4, 6, COLORS.orange); // Raised paw
+  g.rect(-6, 8 - bounce, 4, 4, COLORS.orange); // Left paw grounded
+
+  // Head facing forward, occasional blink
+  const isBlinking = d.time % 4000 < 150;
+  const expr = isBlinking ? 'sleeping' : 'normal';
+  
+  drawHead(g, 0, -2 - bounce, true, expr);
+}
+
 // ─── Main Render ─────────────────────────────────────────────────────────────
 
 export function renderPet(
@@ -558,6 +583,9 @@ export function renderPet(
       break;
     case 'STARTLED':
       drawStartled(g);
+      break;
+    case 'REMINDING':
+      drawReminding(g, d);
       break;
     default:
       drawIdle(g, d);

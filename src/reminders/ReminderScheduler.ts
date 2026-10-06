@@ -1,4 +1,4 @@
-import { isPermissionGranted, requestPermission, sendNotification } from '@tauri-apps/plugin-notification';
+import { isPermissionGranted, requestPermission } from '@tauri-apps/plugin-notification';
 import { useReminderStore } from './ReminderStore';
 import { calculateNextTrigger } from './ReminderUtils';
 import { AssistantEventBus } from '../assistant/AssistantEventBus';
@@ -107,8 +107,8 @@ export class ReminderScheduler {
       }
 
       if (permissionGranted) {
-        console.log(`[NOTIFICATION] sending native notification`);
-        sendNotification({ title: 'PixelPaw', body: reminder.title });
+        console.log(`[NOTIFICATION] suppressing native notification in favor of PixelPaw bubble`);
+        // sendNotification({ title: 'PixelPaw', body: reminder.title });
         console.log(`[NOTIFICATION] success`);
       } else {
         console.log(`[NOTIFICATION] failure - permission denied`);

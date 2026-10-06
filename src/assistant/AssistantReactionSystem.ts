@@ -13,7 +13,7 @@ export class AssistantReactionSystem {
     
     // Fallback default
     let reaction: AssistantReaction = {
-      stateSequence: ['LOOKING', 'EXCITED'],
+      stateSequence: ['THINKING', 'REMINDING'],
       message: 'Reminder!',
       icon: '🔔',
       durationMs: 5000,
@@ -21,36 +21,43 @@ export class AssistantReactionSystem {
 
     if (t.includes('water') || t.includes('drink') || t.includes('hydration')) {
       reaction = {
-        stateSequence: ['THINKING', 'HAPPY'],
-        message: 'Water time?',
+        stateSequence: ['THINKING', 'REMINDING'],
+        message: 'Hydrate, human.',
         icon: '💧',
         durationMs: 5000,
       };
     } else if (t.includes('break')) {
       reaction = {
-        stateSequence: ['STRETCHING', 'IDLE'],
+        stateSequence: ['STRETCHING', 'REMINDING'],
         message: 'Time for a little break?',
         icon: '☕',
         durationMs: 5000,
       };
     } else if (t.includes('stretch')) {
       reaction = {
-        stateSequence: ['STRETCHING'],
+        stateSequence: ['STRETCHING', 'REMINDING'],
         message: 'Stretch?',
         icon: '🧘',
         durationMs: 4000,
       };
     } else if (t.includes('study') || t.includes('focus')) {
       reaction = {
-        stateSequence: ['LOOKING', 'SITTING'],
-        message: 'Study time?',
+        stateSequence: ['THINKING', 'REMINDING'],
+        message: 'Come on, we have work to do.',
         icon: '📚',
+        durationMs: 4000,
+      };
+    } else if (t.includes('sleep') || t.includes('bed')) {
+      reaction = {
+        stateSequence: ['YAWNING', 'REMINDING'],
+        message: 'Even cats need their beauty sleep.',
+        icon: '🌙',
         durationMs: 4000,
       };
     } else {
       reaction = {
-        stateSequence: ['THINKING', 'LOOKING'],
-        message: 'Hey, don\'t forget!',
+        stateSequence: ['THINKING', 'REMINDING'],
+        message: `Don't forget: ${title}`,
         icon: '🔔',
         durationMs: 4000,
       };

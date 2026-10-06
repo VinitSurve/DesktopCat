@@ -9,7 +9,8 @@
     "ai_result",
     "ocr_selection",
     "ocr_result",
-    "reminder_bubble"
+    "reminder_bubble",
+    "reminder_window"
   ],
   "permissions": [
     "core:default",

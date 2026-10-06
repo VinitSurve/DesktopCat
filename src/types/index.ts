@@ -18,7 +18,8 @@ export type PetState =
   | 'CLEANING'
   | 'LICKING_PAW'
   | 'POUNCING'
-  | 'STARTLED';
+  | 'STARTLED'
+  | 'REMINDING';
 
 export type Direction = 'left' | 'right';
 
@@ -54,7 +55,8 @@ export type AnimationName =
   | 'clean'
   | 'lick_paw'
   | 'pounce'
-  | 'startled';
+  | 'startled'
+  | 'reminding';
 
 // ─── Mood System ─────────────────────────────────────────────────────────────
 

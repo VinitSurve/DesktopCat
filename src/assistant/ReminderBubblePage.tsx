@@ -1,45 +1,32 @@
 import { useEffect, useState } from 'react';
-import { listen, emit } from '@tauri-apps/api/event';
+import { emit } from '@tauri-apps/api/event';
+import { getCurrentWindow } from '@tauri-apps/api/window';
 import './ReminderBubblePage.css';
 
-interface BubbleData {
-  id: string;
-  title: string;
-  message: string;
-  icon?: string;
-  type: 'REMINDER' | 'TIMER';
-}
-
 export function ReminderBubblePage() {
-  const [data, setData] = useState<BubbleData | null>(null);
+  const [data, setData] = useState({ title: '', message: '', icon: '', id: '', type: '' });
 
   useEffect(() => {
-    // Listen for data
-    const unlisten = listen<BubbleData>('set_bubble_data', (event) => {
-      setData(event.payload);
+    const searchParams = new URLSearchParams(window.location.search);
+    setData({
+      title: searchParams.get('title') || '',
+      message: searchParams.get('message') || '',
+      icon: searchParams.get('icon') || '',
+      id: searchParams.get('id') || '',
+      type: searchParams.get('rtype') || 'REMINDER'
     });
-
-    // Notify main window we are ready
-    emit('bubble_ready');
-
-    return () => {
-      unlisten.then(f => f());
-    };
+    console.log('[PIXELPAW BUBBLE] page mounted with data:', Object.fromEntries(searchParams));
   }, []);
 
   const handleDone = () => {
-    if (data) {
-      emit('bubble_action', { action: 'DONE', id: data.id, type: data.type });
-    }
+    emit('bubble_action', { action: 'DONE', id: data.id, type: data.type });
+    getCurrentWindow().close();
   };
 
   const handleSnooze = (mins: number) => {
-    if (data) {
-      emit('bubble_action', { action: 'SNOOZE', id: data.id, type: data.type, minutes: mins });
-    }
+    emit('bubble_action', { action: 'SNOOZE', id: data.id, type: data.type, minutes: mins });
+    getCurrentWindow().close();
   };
-
-  if (!data) return <div className="bubble-container empty"></div>;
 
   return (
     <div className="bubble-container">
@@ -49,7 +36,7 @@ export function ReminderBubblePage() {
           <span className="bubble-message">{data.message}</span>
         </div>
         <div className="bubble-title">{data.title}</div>
-        <div className="bubble-actions">
+        <div className="bubble-actions" style={{ marginTop: 12 }}>
           <button onClick={handleDone} className="bubble-btn primary">Done</button>
           {data.type === 'REMINDER' && (
             <>
@@ -59,6 +46,7 @@ export function ReminderBubblePage() {
           )}
         </div>
       </div>
+      {/* Optional tiny pointer arrow here if CSS doesn't handle it */}
     </div>
   );
 }
