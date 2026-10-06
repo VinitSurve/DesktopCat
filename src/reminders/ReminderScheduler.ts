@@ -54,6 +54,7 @@ export class ReminderScheduler {
 
         // Is it due?
         if (now >= reminder.nextTriggerAt) {
+          console.log(`[REMINDER] due id=${reminder.id} title=${reminder.title}`);
           await this.triggerReminder(reminder);
           
           // Reschedule or complete
@@ -106,13 +107,19 @@ export class ReminderScheduler {
       }
 
       if (permissionGranted) {
+        console.log(`[NOTIFICATION] sending native notification`);
         sendNotification({ title: 'PixelPaw', body: reminder.title });
+        console.log(`[NOTIFICATION] success`);
+      } else {
+        console.log(`[NOTIFICATION] failure - permission denied`);
       }
     } catch (err) {
+      console.log(`[NOTIFICATION] failure - error: ${err}`);
       console.error('Failed to send notification', err);
     }
 
     // 3. Cat Reaction
+    console.log(`[REMINDER] event emitted`);
     AssistantEventBus.emit({ type: 'REMINDER_TRIGGERED', payload: reminder });
   }
 }

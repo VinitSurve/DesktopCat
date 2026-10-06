@@ -1,0 +1,80 @@
+body {
+  margin: 0;
+  padding: 0;
+  background: transparent;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+.bubble-container {
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  box-sizing: border-box;
+}
+
+.bubble-container.empty {
+  display: none;
+}
+
+.bubble-content {
+  background: rgba(30, 30, 30, 0.95);
+  border: 1px solid rgba(255, 165, 0, 0.3);
+  border-radius: 12px;
+  padding: 12px 16px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 160px;
+  max-width: 240px;
+  backdrop-filter: blur(8px);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.bubble-message {
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.4;
+  text-align: center;
+}
+
+.bubble-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.bubble-btn {
+  background: rgba(255, 255, 255, 0.1);
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.bubble-btn:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.bubble-btn.primary {
+  background: rgba(255, 165, 0, 0.2);
+  color: #ffa500;
+  font-weight: 600;
+}
+
+.bubble-btn.primary:hover {
+  background: rgba(255, 165, 0, 0.3);
+}
+
+@keyframes popIn {
+  0% { transform: scale(0.8) translateY(10px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
+}

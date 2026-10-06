@@ -10,6 +10,7 @@ import { SettingsPage } from './components/SettingsPage';
 import { AIResultPage } from './ai-ui/AIResultPage';
 import { OCRSelectionPage } from './screen/OCRSelectionPage';
 import { OCRResultPage } from './screen/OCRResultPage';
+import { ReminderBubblePage } from './assistant/ReminderBubblePage';
 import './App.css';
 
 export default function App() {
@@ -35,6 +36,10 @@ export default function App() {
   
   if (windowLabel === 'ocr_result') {
     return <OCRResultPage />;
+  }
+
+  if (windowLabel === 'reminder_bubble') {
+    return <ReminderBubblePage />;
   }
 
   // Default: pet window

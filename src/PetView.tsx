@@ -23,6 +23,9 @@ import { globalTimerManager } from './timers/TimerManager';
 import { useReminderStore } from './reminders/ReminderStore';
 import { useTimerStore } from './timers/TimerStore';
 import { AssistantEventBus } from './assistant/AssistantEventBus';
+import { AssistantReactionSystem } from './assistant/AssistantReactionSystem';
+import { WebviewWindow } from '@tauri-apps/api/webviewWindow';
+import type { PetState } from './types';
 
 export function PetView() {
   const {
@@ -113,13 +116,136 @@ export function PetView() {
   // ─── Listen for Assistant Events ─────────────────────────────────────────
   
   useEffect(() => {
+    let reactionTimeout: number | null = null;
+    let sequenceTimeouts: number[] = [];
+    
+    const showBubble = async (data: any) => {
+      let win = await WebviewWindow.getByLabel('reminder_bubble');
+      
+      const pos = await getCurrentWindow().outerPosition();
+      const x = pos.x + 240; // Right of the cat
+      const y = pos.y;
+      
+      if (!win) {
+        win = new WebviewWindow('reminder_bubble', {
+          url: '/?windowLabel=reminder_bubble',
+          title: 'PixelPaw Reminder',
+          width: 260,
+          height: 140,
+          x: x,
+          y: y,
+          transparent: true,
+          decorations: false,
+          alwaysOnTop: true,
+          skipTaskbar: true,
+          resizable: false,
+        });
+      } else {
+        win.setPosition({ type: 'Physical', x, y } as any);
+        win.show();
+      }
+
+      // We need to wait for the window to be ready to receive events
+      const readyListener = await listen('bubble_ready', () => {
+        emit('set_bubble_data', data);
+        readyListener(); // unsubscribe
+      });
+      
+      // Also emit immediately in case it's already open
+      setTimeout(() => emit('set_bubble_data', data), 500);
+    };
+
+    const runReactionSequence = (seq: PetState[], totalDurationMs: number) => {
+      if (seq.length === 0) return;
+      
+      // Temporarily override state
+      behaviorRef.current.forceState(seq[0]);
+      setPetState(seq[0]);
+      
+      if (seq.length > 1) {
+        // Just split duration evenly for simplicity
+        const stepMs = totalDurationMs / seq.length;
+        for (let i = 1; i < seq.length; i++) {
+          const t = window.setTimeout(() => {
+            behaviorRef.current.forceState(seq[i]);
+            setPetState(seq[i]);
+          }, stepMs * i);
+          sequenceTimeouts.push(t);
+        }
+      }
+      
+      // Return to normal after duration
+      reactionTimeout = window.setTimeout(() => {
+        behaviorRef.current.forceState('IDLE');
+        setPetState('IDLE');
+      }, totalDurationMs);
+    };
+
     const unsub = AssistantEventBus.subscribe((event) => {
-      const newState = behaviorRef.current.reactToEvent(event.type);
-      if (newState) {
-        setPetState(newState);
+      let reaction = null;
+      let bubbleData = null;
+      const catState = behaviorRef.current.state;
+
+      if (event.type === 'REMINDER_TRIGGERED') {
+        reaction = AssistantReactionSystem.getReactionForReminder(event.payload.title, catState);
+        bubbleData = { id: event.payload.id, message: reaction.message, type: 'REMINDER' };
+      } else if (event.type === 'TIMER_COMPLETED') {
+        reaction = AssistantReactionSystem.getReactionForTimer(event.payload.title, catState);
+        bubbleData = { id: event.payload.id, message: reaction.message, type: 'TIMER' };
+      }
+
+      if (reaction && bubbleData) {
+        // Clear previous reaction
+        if (reactionTimeout) clearTimeout(reactionTimeout);
+        sequenceTimeouts.forEach(clearTimeout);
+        sequenceTimeouts = [];
+        
+        runReactionSequence(reaction.stateSequence, reaction.durationMs);
+        
+        // Show bubble mid-sequence
+        const bubbleDelay = reaction.stateSequence.length > 1 ? (reaction.durationMs / reaction.stateSequence.length) : 500;
+        setTimeout(() => showBubble(bubbleData), bubbleDelay);
+      } else {
+        // Fallback for other events
+        const newState = behaviorRef.current.reactToEvent(event.type);
+        if (newState) {
+          setPetState(newState);
+        }
       }
     });
-    return unsub;
+
+    const actionListener = listen<{action: string, id: string, type: string, minutes?: number}>('bubble_action', async (e) => {
+      const win = await WebviewWindow.getByLabel('reminder_bubble');
+      if (win) win.hide();
+      
+      const { action, id, type, minutes } = e.payload;
+      
+      if (type === 'REMINDER') {
+        if (action === 'DONE' || action === 'DISMISS') {
+          // It's already handled by the scheduler for 'completed', but we could mark it
+          useReminderStore.getState().updateReminder(id, { completed: true });
+        } else if (action === 'SNOOZE' && minutes) {
+          useReminderStore.getState().updateReminder(id, { 
+            nextTriggerAt: Date.now() + minutes * 60 * 1000 
+          });
+        }
+      }
+      
+      // Satisfied animation
+      behaviorRef.current.forceState('HAPPY');
+      setPetState('HAPPY');
+      setTimeout(() => {
+        behaviorRef.current.forceState('IDLE');
+        setPetState('IDLE');
+      }, 3000);
+    });
+
+    return () => {
+      unsub();
+      actionListener.then(f => f());
+      if (reactionTimeout) clearTimeout(reactionTimeout);
+      sequenceTimeouts.forEach(clearTimeout);
+    };
   }, [setPetState]);
 
   // ─── Listen for Pause Toggle from Tray ───────────────────────────────

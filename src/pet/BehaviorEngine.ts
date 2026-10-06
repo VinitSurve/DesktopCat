@@ -257,6 +257,9 @@ export class BehaviorEngine {
    * React to an external event
    */
   reactToEvent(event: string): PetState | null {
+    if (event.startsWith('REMINDER_') || event.startsWith('TIMER_')) {
+      console.log(`[CAT] reminder reaction received: ${event}`);
+    }
     switch (event) {
       case 'PET_CLICK':
       case 'PET_DOUBLE_CLICK':
