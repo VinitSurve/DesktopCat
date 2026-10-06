@@ -13,7 +13,12 @@ export type PetState =
   | 'EXCITED'
   | 'DRAGGED'
   | 'THINKING'
-  | 'WAVING';
+  | 'WAVING'
+  | 'YAWNING'
+  | 'CLEANING'
+  | 'LICKING_PAW'
+  | 'POUNCING'
+  | 'STARTLED';
 
 export type Direction = 'left' | 'right';
 
@@ -44,7 +49,12 @@ export type AnimationName =
   | 'excited'
   | 'thinking'
   | 'dragged'
-  | 'wave';
+  | 'wave'
+  | 'yawn'
+  | 'clean'
+  | 'lick_paw'
+  | 'pounce'
+  | 'startled';
 
 // ─── Mood System ─────────────────────────────────────────────────────────────
 

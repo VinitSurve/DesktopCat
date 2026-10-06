@@ -4,6 +4,9 @@
  */
 
 import type { PetState, MoodValues, EnvironmentInfo, PetPosition, PetSettings } from '../types';
+import { MoodEngine } from './MoodEngine';
+import { InteractionEngine } from './InteractionEngine';
+import { MIN_STATE_DURATIONS } from './CatConstants';
 
 // ─── Transition Definitions ─────────────────────────────────────────────────
 
@@ -16,71 +19,96 @@ interface Transition {
 
 const TRANSITIONS: Partial<Record<PetState, Transition[]>> = {
   IDLE: [
-    { to: 'WALKING', weight: 20, minDuration: 5000, cooldownMs: 5000 },
-    { to: 'SITTING', weight: 15, minDuration: 5000, cooldownMs: 6000 },
-    { to: 'LOOKING', weight: 15, minDuration: 4000, cooldownMs: 4000 },
+    { to: 'WALKING', weight: 20, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 5000 },
+    { to: 'SITTING', weight: 15, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 6000 },
+    { to: 'LOOKING', weight: 15, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 4000 },
     { to: 'STRETCHING', weight: 8, minDuration: 8000, cooldownMs: 12000 },
     { to: 'SLEEPING', weight: 5, minDuration: 10000, cooldownMs: 25000 },
-    { to: 'CURIOUS', weight: 10, minDuration: 5000, cooldownMs: 8000 },
-    { to: 'WAVING', weight: 5, minDuration: 6000, cooldownMs: 15000 },
+    { to: 'CURIOUS', weight: 10, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 8000 },
+    { to: 'YAWNING', weight: 8, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 15000 },
+    { to: 'CLEANING', weight: 5, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 20000 },
   ],
   WALKING: [
-    { to: 'IDLE', weight: 35, minDuration: 3000, cooldownMs: 2000 },
-    { to: 'SITTING', weight: 20, minDuration: 4000, cooldownMs: 4000 },
-    { to: 'LOOKING', weight: 15, minDuration: 2000, cooldownMs: 3000 },
-    { to: 'STRETCHING', weight: 10, minDuration: 5000, cooldownMs: 8000 },
+    { to: 'IDLE', weight: 35, minDuration: MIN_STATE_DURATIONS.WALKING, cooldownMs: 2000 },
+    { to: 'SITTING', weight: 20, minDuration: MIN_STATE_DURATIONS.WALKING, cooldownMs: 4000 },
+    { to: 'LOOKING', weight: 15, minDuration: MIN_STATE_DURATIONS.WALKING, cooldownMs: 3000 },
+    { to: 'STRETCHING', weight: 10, minDuration: MIN_STATE_DURATIONS.WALKING, cooldownMs: 8000 },
   ],
   SITTING: [
-    { to: 'IDLE', weight: 30, minDuration: 4000, cooldownMs: 3000 },
+    { to: 'IDLE', weight: 30, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 3000 },
     { to: 'SLEEPING', weight: 15, minDuration: 6000, cooldownMs: 15000 },
-    { to: 'LOOKING', weight: 20, minDuration: 3000, cooldownMs: 3000 },
-    { to: 'STRETCHING', weight: 15, minDuration: 5000, cooldownMs: 8000 },
-    { to: 'WALKING', weight: 15, minDuration: 5000, cooldownMs: 4000 },
+    { to: 'LOOKING', weight: 20, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 3000 },
+    { to: 'STRETCHING', weight: 15, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 8000 },
+    { to: 'WALKING', weight: 15, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 4000 },
+    { to: 'CLEANING', weight: 20, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 15000 },
+    { to: 'LICKING_PAW', weight: 15, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 10000 },
   ],
   SLEEPING: [
-    { to: 'IDLE', weight: 40, minDuration: 10000, cooldownMs: 8000 },
+    { to: 'IDLE', weight: 40, minDuration: MIN_STATE_DURATIONS.SLEEPING, cooldownMs: 8000 },
     { to: 'STRETCHING', weight: 35, minDuration: 8000, cooldownMs: 5000 },
     { to: 'SITTING', weight: 25, minDuration: 12000, cooldownMs: 5000 },
   ],
   STRETCHING: [
-    { to: 'IDLE', weight: 40, minDuration: 3000, cooldownMs: 5000 },
-    { to: 'WALKING', weight: 30, minDuration: 2000, cooldownMs: 3000 },
-    { to: 'SITTING', weight: 20, minDuration: 2000, cooldownMs: 3000 },
+    { to: 'IDLE', weight: 40, minDuration: MIN_STATE_DURATIONS.STRETCHING, cooldownMs: 5000 },
+    { to: 'WALKING', weight: 30, minDuration: MIN_STATE_DURATIONS.STRETCHING, cooldownMs: 3000 },
+    { to: 'SITTING', weight: 20, minDuration: MIN_STATE_DURATIONS.STRETCHING, cooldownMs: 3000 },
+    { to: 'YAWNING', weight: 20, minDuration: MIN_STATE_DURATIONS.STRETCHING, cooldownMs: 8000 },
   ],
   LOOKING: [
-    { to: 'IDLE', weight: 35, minDuration: 2000, cooldownMs: 2000 },
-    { to: 'WALKING', weight: 25, minDuration: 2000, cooldownMs: 3000 },
-    { to: 'CURIOUS', weight: 15, minDuration: 1500, cooldownMs: 6000 },
-    { to: 'SITTING', weight: 15, minDuration: 3000, cooldownMs: 3000 },
+    { to: 'IDLE', weight: 35, minDuration: MIN_STATE_DURATIONS.LOOKING, cooldownMs: 2000 },
+    { to: 'WALKING', weight: 25, minDuration: MIN_STATE_DURATIONS.LOOKING, cooldownMs: 3000 },
+    { to: 'CURIOUS', weight: 15, minDuration: MIN_STATE_DURATIONS.LOOKING, cooldownMs: 6000 },
+    { to: 'SITTING', weight: 15, minDuration: MIN_STATE_DURATIONS.LOOKING, cooldownMs: 3000 },
   ],
   CURIOUS: [
-    { to: 'IDLE', weight: 30, minDuration: 3000, cooldownMs: 3000 },
-    { to: 'LOOKING', weight: 25, minDuration: 2000, cooldownMs: 2000 },
-    { to: 'WALKING', weight: 25, minDuration: 2000, cooldownMs: 3000 },
-    { to: 'HAPPY', weight: 10, minDuration: 2000, cooldownMs: 10000 },
+    { to: 'IDLE', weight: 30, minDuration: MIN_STATE_DURATIONS.CURIOUS, cooldownMs: 3000 },
+    { to: 'LOOKING', weight: 25, minDuration: MIN_STATE_DURATIONS.CURIOUS, cooldownMs: 2000 },
+    { to: 'WALKING', weight: 25, minDuration: MIN_STATE_DURATIONS.CURIOUS, cooldownMs: 3000 },
+    { to: 'HAPPY', weight: 10, minDuration: MIN_STATE_DURATIONS.CURIOUS, cooldownMs: 10000 },
   ],
   HAPPY: [
-    { to: 'IDLE', weight: 40, minDuration: 3000, cooldownMs: 5000 },
-    { to: 'WALKING', weight: 30, minDuration: 2000, cooldownMs: 3000 },
-    { to: 'EXCITED', weight: 15, minDuration: 2000, cooldownMs: 12000 },
+    { to: 'IDLE', weight: 40, minDuration: MIN_STATE_DURATIONS.HAPPY, cooldownMs: 5000 },
+    { to: 'WALKING', weight: 30, minDuration: MIN_STATE_DURATIONS.HAPPY, cooldownMs: 3000 },
+    { to: 'EXCITED', weight: 15, minDuration: MIN_STATE_DURATIONS.HAPPY, cooldownMs: 12000 },
   ],
   CONFUSED: [
-    { to: 'IDLE', weight: 50, minDuration: 2000, cooldownMs: 3000 },
-    { to: 'LOOKING', weight: 30, minDuration: 2000, cooldownMs: 3000 },
+    { to: 'IDLE', weight: 50, minDuration: MIN_STATE_DURATIONS.CONFUSED, cooldownMs: 3000 },
+    { to: 'LOOKING', weight: 30, minDuration: MIN_STATE_DURATIONS.CONFUSED, cooldownMs: 3000 },
   ],
   EXCITED: [
-    { to: 'HAPPY', weight: 40, minDuration: 3000, cooldownMs: 5000 },
-    { to: 'IDLE', weight: 30, minDuration: 4000, cooldownMs: 3000 },
-    { to: 'WALKING', weight: 20, minDuration: 2000, cooldownMs: 3000 },
+    { to: 'HAPPY', weight: 40, minDuration: MIN_STATE_DURATIONS.EXCITED, cooldownMs: 5000 },
+    { to: 'IDLE', weight: 30, minDuration: MIN_STATE_DURATIONS.EXCITED, cooldownMs: 3000 },
+    { to: 'WALKING', weight: 20, minDuration: MIN_STATE_DURATIONS.EXCITED, cooldownMs: 3000 },
   ],
   WAVING: [
-    { to: 'IDLE', weight: 40, minDuration: 3000, cooldownMs: 10000 },
-    { to: 'HAPPY', weight: 30, minDuration: 2000, cooldownMs: 5000 },
-    { to: 'SITTING', weight: 20, minDuration: 3000, cooldownMs: 5000 },
+    { to: 'IDLE', weight: 40, minDuration: MIN_STATE_DURATIONS.WAVING, cooldownMs: 10000 },
+    { to: 'HAPPY', weight: 30, minDuration: MIN_STATE_DURATIONS.WAVING, cooldownMs: 5000 },
+    { to: 'SITTING', weight: 20, minDuration: MIN_STATE_DURATIONS.WAVING, cooldownMs: 5000 },
   ],
   THINKING: [
-    { to: 'IDLE', weight: 50, minDuration: 3000, cooldownMs: 3000 },
-    { to: 'CONFUSED', weight: 20, minDuration: 2000, cooldownMs: 5000 },
+    { to: 'IDLE', weight: 50, minDuration: MIN_STATE_DURATIONS.THINKING, cooldownMs: 3000 },
+    { to: 'CONFUSED', weight: 20, minDuration: MIN_STATE_DURATIONS.THINKING, cooldownMs: 5000 },
+  ],
+  YAWNING: [
+    { to: 'IDLE', weight: 50, minDuration: MIN_STATE_DURATIONS.YAWNING, cooldownMs: 5000 },
+    { to: 'SLEEPING', weight: 30, minDuration: MIN_STATE_DURATIONS.YAWNING, cooldownMs: 5000 },
+  ],
+  CLEANING: [
+    { to: 'SITTING', weight: 50, minDuration: MIN_STATE_DURATIONS.CLEANING, cooldownMs: 5000 },
+    { to: 'IDLE', weight: 20, minDuration: MIN_STATE_DURATIONS.CLEANING, cooldownMs: 5000 },
+    { to: 'SLEEPING', weight: 20, minDuration: MIN_STATE_DURATIONS.CLEANING, cooldownMs: 5000 },
+  ],
+  LICKING_PAW: [
+    { to: 'SITTING', weight: 50, minDuration: MIN_STATE_DURATIONS.LICKING_PAW, cooldownMs: 5000 },
+    { to: 'CLEANING', weight: 30, minDuration: MIN_STATE_DURATIONS.LICKING_PAW, cooldownMs: 2000 },
+  ],
+  POUNCING: [
+    { to: 'IDLE', weight: 60, minDuration: MIN_STATE_DURATIONS.POUNCING, cooldownMs: 1000 },
+    { to: 'LOOKING', weight: 40, minDuration: MIN_STATE_DURATIONS.POUNCING, cooldownMs: 1000 },
+  ],
+  STARTLED: [
+    { to: 'LOOKING', weight: 60, minDuration: MIN_STATE_DURATIONS.STARTLED, cooldownMs: 1000 },
+    { to: 'CONFUSED', weight: 40, minDuration: MIN_STATE_DURATIONS.STARTLED, cooldownMs: 1000 },
   ],
 };
 
@@ -93,6 +121,9 @@ export class BehaviorEngine {
   private lastTransitionCheck: number = Date.now();
   private transitionCheckInterval: number = 1000; // check every second
   private storedState: PetState | null = null;
+  
+  public moodEngine = new MoodEngine();
+  public interactionEngine = new InteractionEngine();
 
   constructor(initialState: PetState = 'IDLE') {
     this.currentState = initialState;
@@ -101,6 +132,10 @@ export class BehaviorEngine {
 
   get state(): PetState {
     return this.currentState;
+  }
+  
+  get currentMood(): MoodValues {
+    return this.moodEngine.current;
   }
 
   get stateAge(): number {
@@ -118,7 +153,7 @@ export class BehaviorEngine {
     }
   }
 
-  update(mood: MoodValues, env: EnvironmentInfo | null, pos: PetPosition, settings: PetSettings): boolean {
+  update(_mood: MoodValues, env: EnvironmentInfo | null, pos: PetPosition, settings: PetSettings): boolean {
     const now = Date.now();
 
     // Don't check too frequently
@@ -126,6 +161,18 @@ export class BehaviorEngine {
       return false;
     }
     this.lastTransitionCheck = now;
+    
+    // Update underlying systems
+    this.moodEngine.update(this.currentState, env);
+    
+    // Cursor interaction state machine
+    if (env && settings.mouse_following) {
+      const cursorAction = this.interactionEngine.updateCursorLogic(pos, env.cursor);
+      if (cursorAction) {
+        this.forceState(cursorAction);
+        return true;
+      }
+    }
 
     // Get available transitions
     const transitions = TRANSITIONS[this.currentState];
@@ -153,14 +200,15 @@ export class BehaviorEngine {
     const weighted = valid.map((t) => {
       let weight = t.weight;
 
-      // Mood influences
-      if (t.to === 'SLEEPING' && mood.sleepiness > 60) weight *= 2;
-      if (t.to === 'SLEEPING' && mood.energy > 70) weight *= 0.3;
-      if (t.to === 'HAPPY' && mood.happiness > 70) weight *= 1.5;
-      if (t.to === 'WALKING' && mood.energy > 60) weight *= 1.3;
-      if (t.to === 'EXCITED' && mood.happiness > 80) weight *= 1.5;
-      if (t.to === 'CURIOUS' && mood.curiosity > 60) weight *= 1.5;
-      if (t.to === 'IDLE' && mood.energy < 30) weight *= 1.5;
+      // Mood influences using MoodEngine internal values
+      const currentMood = this.moodEngine.current;
+      if (t.to === 'SLEEPING' && currentMood.sleepiness > 60) weight *= 2;
+      if (t.to === 'SLEEPING' && currentMood.energy > 70) weight *= 0.3;
+      if (t.to === 'HAPPY' && currentMood.happiness > 70) weight *= 1.5;
+      if (t.to === 'WALKING' && currentMood.energy > 60) weight *= 1.3;
+      if (t.to === 'EXCITED' && currentMood.happiness > 80) weight *= 1.5;
+      if (t.to === 'CURIOUS' && currentMood.curiosity > 60) weight *= 1.5;
+      if (t.to === 'IDLE' && currentMood.energy < 30) weight *= 1.5;
 
       // Environment influences
       if (env) {
@@ -169,25 +217,6 @@ export class BehaviorEngine {
           if (env.idle_seconds > 120 && t.to === 'SITTING') weight *= 1.5;
           if (env.idle_seconds > 300 && t.to === 'SLEEPING') weight *= 2.0;
           if (env.idle_seconds > 30 && (t.to === 'WALKING' || t.to === 'EXCITED')) weight *= 0.5;
-
-          // Active app influence (subtle)
-          const app = env.active_app.name.toLowerCase();
-          if ((app.includes('code') || app.includes('terminal')) && t.to === 'SITTING') weight *= 1.2;
-          if ((app.includes('code') || app.includes('terminal')) && t.to === 'WALKING') weight *= 0.8;
-        }
-
-        // Cursor proximity
-        if (settings.mouse_following) {
-          const dx = env.cursor.x - pos.x;
-          const dy = env.cursor.y - pos.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-
-          if (dist < 100) {
-            if (t.to === 'LOOKING' || t.to === 'CURIOUS') weight *= 2.0;
-            if (t.to === 'SLEEPING') weight *= 0.1;
-          } else if (dist < 300) {
-            if (t.to === 'LOOKING') weight *= 1.5;
-          }
         }
       }
 
@@ -224,13 +253,11 @@ export class BehaviorEngine {
   reactToEvent(event: string): PetState | null {
     switch (event) {
       case 'PET_CLICK':
-        this.storedState = null; // Clear stored state on higher priority event
-        this.forceState('HAPPY');
-        return 'HAPPY';
       case 'PET_DOUBLE_CLICK':
         this.storedState = null;
-        this.forceState('EXCITED');
-        return 'EXCITED';
+        const interactionState = this.interactionEngine.handlePetClick();
+        this.forceState(interactionState);
+        return interactionState;
       case 'PET_DRAG_START':
         this.storedState = null;
         this.forceState('DRAGGED');
@@ -255,12 +282,7 @@ export class BehaviorEngine {
         this.storedState = null;
         return null;
       case 'MOUSE_NEAR':
-        // Environment proximity (not direct hit area hover).
-        // Only trigger if idle, DO NOT WAKE if sleeping.
-        if (this.currentState === 'IDLE') {
-          this.forceState('LOOKING');
-          return 'LOOKING';
-        }
+        // Now handled by InteractionEngine natively in update loop.
         return null;
       case 'USER_IDLE':
         if (this.stateAge > 15000 && this.currentState !== 'SLEEPING') {

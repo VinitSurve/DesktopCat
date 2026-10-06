@@ -111,7 +111,6 @@ interface DrawContext {
   direction: Direction;
   frame: number;
   time: number;
-  eyeOffset: { x: number; y: number };
 }
 
 const frames = (d: DrawContext, speedMs: number, count: number) =>
@@ -125,8 +124,7 @@ function drawHead(
   oy: number,
   blink: boolean,
   expression: 'normal' | 'happy' | 'surprised' | 'confused' | 'sleeping' | 'thinking' = 'normal',
-  earTwitch: boolean = false,
-  eyeOffset: { x: number; y: number } = { x: 0, y: 0 }
+  earTwitch: boolean = false
 ) {
   // Ears
   let leftEarY = oy - 15;
@@ -184,18 +182,15 @@ function drawHead(
     g.rect(ox + 4, oy - 5, 2, 2, COLORS.white);
   } else {
     // normal eyes
-    const ex = Math.round(eyeOffset.x);
-    const ey = Math.round(eyeOffset.y);
-    
     // Left Eye
-    g.rect(ox - 7 + ex, oy - 5 + ey, 4, 4, COLORS.eye);
+    g.rect(ox - 7, oy - 5, 4, 4, COLORS.eye);
     
     // Right Eye
-    g.rect(ox + 3 + ex, oy - 5 + ey, 4, 4, COLORS.eye);
+    g.rect(ox + 3, oy - 5, 4, 4, COLORS.eye);
     
     // highlight
-    g.rect(ox - 5 + ex, oy - 4 + ey, 2, 2, COLORS.white);
-    g.rect(ox + 5 + ex, oy - 4 + ey, 2, 2, COLORS.white);
+    g.rect(ox - 5, oy - 4, 2, 2, COLORS.white);
+    g.rect(ox + 5, oy - 4, 2, 2, COLORS.white);
   }
 }
 
@@ -242,7 +237,7 @@ function drawIdle(g: PixelGrid, d: DrawContext) {
   g.rect(-5, 12 + breathe, 4, 4 - breathe, COLORS.orange);
   g.rect(1, 12 + breathe, 4, 4 - breathe, COLORS.orange);
   
-  drawHead(g, 0, breathe, blink, 'normal', earTwitch, d.eyeOffset);
+  drawHead(g, 0, breathe, blink, 'normal', earTwitch);
 }
 
 function drawWalk(g: PixelGrid, d: DrawContext) {
@@ -280,7 +275,7 @@ function drawWalk(g: PixelGrid, d: DrawContext) {
     g.rect(-1, 12 + bob, 4, 4, COLORS.orange);
   }
   
-  drawHead(g, 0, bob, blink, 'normal', false, d.eyeOffset);
+  drawHead(g, 0, bob, blink, 'normal', false);
 }
 
 function drawSit(g: PixelGrid, d: DrawContext) {
@@ -297,7 +292,7 @@ function drawSit(g: PixelGrid, d: DrawContext) {
   g.rect(-5, 10 + breathe, 4, 6 - breathe, COLORS.orange);
   g.rect(1, 10 + breathe, 4, 6 - breathe, COLORS.orange);
   
-  drawHead(g, 0, 2 + breathe, blink, 'normal', false, d.eyeOffset);
+  drawHead(g, 0, 2 + breathe, blink, 'normal', false);
 }
 
 function drawSleep(g: PixelGrid, d: DrawContext) {
@@ -450,6 +445,51 @@ function drawWave(g: PixelGrid, d: DrawContext) {
   drawHead(g, 0, 2, false, 'happy');
 }
 
+function drawYawn(g: PixelGrid, _d: DrawContext) {
+  drawTail(g, 4, 0, 0); // Sitting tail
+  g.rect(-6, 12, 12, 4, COLORS.orangeDark);
+  g.rect(-9, 4, 18, 10, COLORS.orange);
+  g.rect(-7, 7, 14, 7, COLORS.cream);
+  g.rect(-5, 11, 10, 5, COLORS.orange);
+  drawHead(g, 0, 0, true, 'normal'); 
+  // Mouth open (override)
+  g.rect(-2, 1, 4, 3, COLORS.pink);
+  g.rect(-1, 2, 2, 1, COLORS.orangeDark);
+}
+
+function drawClean(g: PixelGrid, d: DrawContext) {
+  const lickPhase = frames(d, 300, 2);
+  drawTail(g, 4, 0, 0);
+  g.rect(-6, 12, 12, 4, COLORS.orangeDark);
+  g.rect(-9, 4, 18, 10, COLORS.orange);
+  g.rect(-7, 7, 14, 7, COLORS.cream);
+  // Head slightly down
+  drawHead(g, 0, 2, true, 'normal');
+  // Paw moving
+  if (lickPhase === 0) {
+    g.rect(2, 6, 4, 5, COLORS.orange);
+  } else {
+    g.rect(2, 4, 4, 5, COLORS.orange);
+  }
+}
+
+function drawPounce(g: PixelGrid) {
+  // Crouched
+  g.rect(-10, 10, 20, 6, COLORS.orange);
+  g.rect(-8, 12, 16, 4, COLORS.cream);
+  drawHead(g, 0, 6, false, 'surprised');
+}
+
+function drawStartled(g: PixelGrid) {
+  // standing tall
+  drawTail(g, 2, 0, -4);
+  g.rect(-6, 8, 4, 8, COLORS.orangeDark);
+  g.rect(2, 8, 4, 8, COLORS.orangeDark);
+  g.rect(-9, -2, 18, 12, COLORS.orange);
+  g.rect(-7, 1, 14, 9, COLORS.cream);
+  drawHead(g, 0, -4, false, 'surprised');
+}
+
 // ─── Main Render ─────────────────────────────────────────────────────────────
 
 export function renderPet(
@@ -460,8 +500,7 @@ export function renderPet(
   direction: Direction,
   frame: number,
   time: number,
-  scale: number,
-  eyeOffset: { x: number; y: number } = { x: 0, y: 0 }
+  scale: number
 ) {
   ctx.clearRect(0, 0, width, height);
   ctx.imageSmoothingEnabled = false;
@@ -473,7 +512,7 @@ export function renderPet(
   }
 
   const g = new PixelGrid();
-  const d: DrawContext = { ctx, cx: 0, cy: 0, scale, direction, frame, time, eyeOffset };
+  const d: DrawContext = { ctx, cx: 0, cy: 0, scale, direction, frame, time };
 
   switch (state) {
     case 'IDLE':
@@ -506,6 +545,19 @@ export function renderPet(
       break;
     case 'WAVING':
       drawWave(g, d);
+      break;
+    case 'YAWNING':
+      drawYawn(g, d);
+      break;
+    case 'CLEANING':
+    case 'LICKING_PAW':
+      drawClean(g, d);
+      break;
+    case 'POUNCING':
+      drawPounce(g);
+      break;
+    case 'STARTLED':
+      drawStartled(g);
       break;
     default:
       drawIdle(g, d);

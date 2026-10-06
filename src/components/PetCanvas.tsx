@@ -55,10 +55,6 @@ export function PetCanvas({
     lastTime: performance.now(),
     speed: 0,
     mode: 'SLOW' as 'SLOW' | 'FAST',
-    eyeTargetX: 0,
-    eyeTargetY: 0,
-    currentEyeX: 0,
-    currentEyeY: 0,
   });
 
   const SLOW_POINTER_THRESHOLD = 300; // pixels per second
@@ -98,18 +94,8 @@ export function PetCanvas({
         ctx.scale(dpr, dpr);
       }
 
-      // Interpolate eye position
-      const ps = pointerStateRef.current;
-      ps.currentEyeX += (ps.eyeTargetX - ps.currentEyeX) * 0.15;
-      ps.currentEyeY += (ps.eyeTargetY - ps.currentEyeY) * 0.15;
-
-      const eyeOffset = {
-        x: ps.currentEyeX,
-        y: ps.currentEyeY,
-      };
-
       // If paused, we still render to prevent canvas clearing on resize, but animations freeze (time=0).
-      renderPet(ctx, canvasSize, canvasSize, petState, direction, frameRef.current, time, gridScale, eyeOffset);
+      renderPet(ctx, canvasSize, canvasSize, petState, direction, frameRef.current, time, gridScale);
     }
 
     animFrameRef.current = requestAnimationFrame(animate);
@@ -135,8 +121,6 @@ export function PetCanvas({
         isHoveringCatRef.current = false;
         onPetHoverExit();
       }
-      pointerStateRef.current.eyeTargetX = 0;
-      pointerStateRef.current.eyeTargetY = 0;
       onMouseLeave();
     };
 
@@ -255,28 +239,6 @@ export function PetCanvas({
     } else if (!shouldHover && isHoveringCatRef.current) {
       isHoveringCatRef.current = false;
       onPetHoverExit();
-    }
-
-    if (isOverCat && petState !== 'SLEEPING' && !isDraggingRef.current) {
-      const faceX = canvasSize / 2;
-      const faceY = canvasSize / 2 - 5 * gridScale;
-      const dx = x - faceX;
-      const dy = y - faceY;
-
-      let tx = 0;
-      let ty = 0;
-
-      if (dx < -10) tx = -3;
-      else if (dx > 10) tx = 3;
-
-      if (dy < -10) ty = -3;
-      else if (dy > 10) ty = 3;
-
-      ps.eyeTargetX = tx;
-      ps.eyeTargetY = ty;
-    } else {
-      ps.eyeTargetX = 0;
-      ps.eyeTargetY = 0;
     }
   }, [canvasSize, gridScale, onPetHoverEnter, onPetHoverExit]);
 
