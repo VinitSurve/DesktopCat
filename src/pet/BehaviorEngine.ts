@@ -153,7 +153,15 @@ export class BehaviorEngine {
     }
   }
 
+  private locked: boolean = false;
+
+  setLocked(locked: boolean) {
+    this.locked = locked;
+  }
+
   update(_mood: MoodValues, env: EnvironmentInfo | null, pos: PetPosition, settings: PetSettings): boolean {
+    if (this.locked) return false;
+
     const now = Date.now();
 
     // Don't check too frequently

@@ -6,7 +6,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
 import { listen } from '@tauri-apps/api/event';
-import { getCurrentWindow, PhysicalPosition, LogicalSize } from '@tauri-apps/api/window';
+import { getCurrentWindow, PhysicalPosition, LogicalSize, currentMonitor } from '@tauri-apps/api/window';
 import { emit } from '@tauri-apps/api/event';
 import { PetCanvas } from './components/PetCanvas';
 import { PetMenu } from './components/PetMenu';
@@ -123,8 +123,15 @@ export function PetView() {
       let win = await WebviewWindow.getByLabel('reminder_bubble');
       
       const pos = await getCurrentWindow().outerPosition();
-      const x = pos.x + 240; // Right of the cat
+      const monitor = await currentMonitor();
+      
+      let x = pos.x + 240; // Right of the cat by default
       const y = pos.y;
+      
+      // If we're near the right edge of the screen, show it on the left
+      if (monitor && (x + 260) > monitor.size.width) {
+        x = pos.x - 260; // Left of the cat
+      }
       
       if (!win) {
         win = new WebviewWindow('reminder_bubble', {
@@ -146,10 +153,11 @@ export function PetView() {
       }
 
       // We need to wait for the window to be ready to receive events
-      const readyListener = await listen('bubble_ready', () => {
+      let unlistenReady: (() => void) | null = null;
+      listen('bubble_ready', () => {
         emit('set_bubble_data', data);
-        readyListener(); // unsubscribe
-      });
+        if (unlistenReady) unlistenReady();
+      }).then(f => unlistenReady = f);
       
       // Also emit immediately in case it's already open
       setTimeout(() => emit('set_bubble_data', data), 500);
@@ -173,12 +181,6 @@ export function PetView() {
           sequenceTimeouts.push(t);
         }
       }
-      
-      // Return to normal after duration
-      reactionTimeout = window.setTimeout(() => {
-        behaviorRef.current.forceState('IDLE');
-        setPetState('IDLE');
-      }, totalDurationMs);
     };
 
     const unsub = AssistantEventBus.subscribe((event) => {
@@ -188,10 +190,22 @@ export function PetView() {
 
       if (event.type === 'REMINDER_TRIGGERED') {
         reaction = AssistantReactionSystem.getReactionForReminder(event.payload.title, catState);
-        bubbleData = { id: event.payload.id, message: reaction.message, type: 'REMINDER' };
+        bubbleData = { 
+          id: event.payload.id, 
+          title: event.payload.title,
+          message: reaction.message, 
+          icon: reaction.icon,
+          type: 'REMINDER' 
+        };
       } else if (event.type === 'TIMER_COMPLETED') {
         reaction = AssistantReactionSystem.getReactionForTimer(event.payload.title, catState);
-        bubbleData = { id: event.payload.id, message: reaction.message, type: 'TIMER' };
+        bubbleData = { 
+          id: event.payload.id, 
+          title: event.payload.title,
+          message: reaction.message, 
+          icon: reaction.icon,
+          type: 'TIMER' 
+        };
       }
 
       if (reaction && bubbleData) {
@@ -199,6 +213,8 @@ export function PetView() {
         if (reactionTimeout) clearTimeout(reactionTimeout);
         sequenceTimeouts.forEach(clearTimeout);
         sequenceTimeouts = [];
+        
+        behaviorRef.current.setLocked(true);
         
         runReactionSequence(reaction.stateSequence, reaction.durationMs);
         
@@ -232,12 +248,19 @@ export function PetView() {
       }
       
       // Satisfied animation
-      behaviorRef.current.forceState('HAPPY');
-      setPetState('HAPPY');
-      setTimeout(() => {
+      if (type === 'REMINDER' && action === 'DONE') {
+        behaviorRef.current.forceState('HAPPY');
+        setPetState('HAPPY');
+        setTimeout(() => {
+          behaviorRef.current.forceState('IDLE');
+          setPetState('IDLE');
+          behaviorRef.current.setLocked(false);
+        }, 3000);
+      } else {
         behaviorRef.current.forceState('IDLE');
         setPetState('IDLE');
-      }, 3000);
+        behaviorRef.current.setLocked(false);
+      }
     });
 
     return () => {

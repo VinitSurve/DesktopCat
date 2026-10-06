@@ -36,11 +36,29 @@ body {
   animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
+.bubble-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.bubble-icon {
+  font-size: 18px;
+}
+
 .bubble-message {
   font-size: 14px;
   font-weight: 500;
   line-height: 1.4;
   text-align: center;
+}
+
+.bubble-title {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  text-align: center;
+  margin-top: -4px;
 }
 
 .bubble-actions {

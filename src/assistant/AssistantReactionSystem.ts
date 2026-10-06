@@ -3,6 +3,7 @@ import type { PetState } from '../types';
 export interface AssistantReaction {
   stateSequence: PetState[];
   message: string;
+  icon?: string;
   durationMs: number;
 }
 
@@ -14,6 +15,7 @@ export class AssistantReactionSystem {
     let reaction: AssistantReaction = {
       stateSequence: ['LOOKING', 'EXCITED'],
       message: 'Reminder!',
+      icon: '🔔',
       durationMs: 5000,
     };
 
@@ -21,30 +23,35 @@ export class AssistantReactionSystem {
       reaction = {
         stateSequence: ['THINKING', 'HAPPY'],
         message: 'Water time?',
+        icon: '💧',
         durationMs: 5000,
       };
     } else if (t.includes('break')) {
       reaction = {
         stateSequence: ['STRETCHING', 'IDLE'],
-        message: 'Break time.',
+        message: 'Time for a little break?',
+        icon: '☕',
         durationMs: 5000,
       };
     } else if (t.includes('stretch')) {
       reaction = {
         stateSequence: ['STRETCHING'],
         message: 'Stretch?',
+        icon: '🧘',
         durationMs: 4000,
       };
     } else if (t.includes('study') || t.includes('focus')) {
       reaction = {
         stateSequence: ['LOOKING', 'SITTING'],
-        message: 'Study time.',
+        message: 'Study time?',
+        icon: '📚',
         durationMs: 4000,
       };
     } else {
       reaction = {
         stateSequence: ['THINKING', 'LOOKING'],
-        message: 'Your reminder.',
+        message: 'Hey, don\'t forget!',
+        icon: '🔔',
         durationMs: 4000,
       };
     }
@@ -75,13 +82,15 @@ export class AssistantReactionSystem {
     if (t.includes('pomodoro') || t.includes('focus') || t.includes('study')) {
       reaction = {
         stateSequence: ['HAPPY', 'EXCITED'],
-        message: 'Focus session finished.',
+        message: 'Focus session finished!',
+        icon: '🎉',
         durationMs: 6000,
       };
     } else {
       reaction = {
         stateSequence: ['LOOKING', 'HAPPY'],
         message: 'Timer done!',
+        icon: '⏱️',
         durationMs: 5000,
       };
     }

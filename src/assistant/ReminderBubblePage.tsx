@@ -4,7 +4,9 @@ import './ReminderBubblePage.css';
 
 interface BubbleData {
   id: string;
+  title: string;
   message: string;
+  icon?: string;
   type: 'REMINDER' | 'TIMER';
 }
 
@@ -42,7 +44,11 @@ export function ReminderBubblePage() {
   return (
     <div className="bubble-container">
       <div className="bubble-content">
-        <div className="bubble-message">{data.message}</div>
+        <div className="bubble-header">
+          {data.icon && <span className="bubble-icon">{data.icon}</span>}
+          <span className="bubble-message">{data.message}</span>
+        </div>
+        <div className="bubble-title">{data.title}</div>
         <div className="bubble-actions">
           <button onClick={handleDone} className="bubble-btn primary">Done</button>
           {data.type === 'REMINDER' && (
