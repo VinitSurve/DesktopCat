@@ -23,7 +23,7 @@ const TRANSITIONS: Partial<Record<PetState, Transition[]>> = {
     { to: 'SITTING', weight: 15, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 6000 },
     { to: 'LOOKING', weight: 15, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 4000 },
     { to: 'STRETCHING', weight: 8, minDuration: 8000, cooldownMs: 12000 },
-    { to: 'SLEEPING', weight: 5, minDuration: 10000, cooldownMs: 25000 },
+    { to: 'SLEEPING', weight: 5, minDuration: 5000, cooldownMs: 30000 },
     { to: 'CURIOUS', weight: 10, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 8000 },
     { to: 'YAWNING', weight: 8, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 15000 },
     { to: 'CLEANING', weight: 5, minDuration: MIN_STATE_DURATIONS.IDLE, cooldownMs: 20000 },
@@ -36,7 +36,7 @@ const TRANSITIONS: Partial<Record<PetState, Transition[]>> = {
   ],
   SITTING: [
     { to: 'IDLE', weight: 30, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 3000 },
-    { to: 'SLEEPING', weight: 15, minDuration: 6000, cooldownMs: 15000 },
+    { to: 'SLEEPING', weight: 15, minDuration: 4000, cooldownMs: 15000 },
     { to: 'LOOKING', weight: 20, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 3000 },
     { to: 'STRETCHING', weight: 15, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 8000 },
     { to: 'WALKING', weight: 15, minDuration: MIN_STATE_DURATIONS.SITTING, cooldownMs: 4000 },
@@ -167,10 +167,16 @@ export class BehaviorEngine {
     
     // Cursor interaction state machine
     if (env && settings.mouse_following) {
-      const cursorAction = this.interactionEngine.updateCursorLogic(pos, env.cursor);
-      if (cursorAction) {
-        this.forceState(cursorAction);
-        return true;
+      const isHighPriority = ['DRAGGED', 'SLEEPING', 'EXCITED', 'HAPPY', 'CONFUSED', 'WAVING', 'POUNCING', 'STARTLED'].includes(this.currentState);
+      const isCursorDriven = this.interactionEngine.isChasingOrApproaching();
+      
+      // Do not overwrite high-priority state unless cursor logic is actively driving it
+      if (!isHighPriority || isCursorDriven) {
+        const cursorAction = this.interactionEngine.updateCursorLogic(pos, env.cursor);
+        if (cursorAction) {
+          this.forceState(cursorAction);
+          return true;
+        }
       }
     }
 
@@ -214,9 +220,9 @@ export class BehaviorEngine {
       if (env) {
         // Idle time influence
         if (settings.idle_behavior) {
-          if (env.idle_seconds > 120 && t.to === 'SITTING') weight *= 1.5;
-          if (env.idle_seconds > 300 && t.to === 'SLEEPING') weight *= 2.0;
-          if (env.idle_seconds > 30 && (t.to === 'WALKING' || t.to === 'EXCITED')) weight *= 0.5;
+          if (env.idle_seconds > 10 && t.to === 'SITTING') weight *= 2.0;
+          if (env.idle_seconds > 20 && t.to === 'SLEEPING') weight *= 50.0; // Fast dev test path
+          if (env.idle_seconds > 30 && (t.to === 'WALKING' || t.to === 'EXCITED')) weight *= 0.1;
         }
       }
 
@@ -305,6 +311,18 @@ export class BehaviorEngine {
       case 'AI_FAILED':
         this.forceState('CONFUSED');
         return 'CONFUSED';
+
+      // --- Assistant Reactions ---
+      case 'REMINDER_CREATED':
+        this.forceState('HAPPY');
+        return 'HAPPY';
+      case 'TIMER_STARTED':
+        this.forceState('SITTING'); // Focuses briefly
+        return 'SITTING';
+      case 'REMINDER_TRIGGERED':
+      case 'TIMER_COMPLETED':
+        this.forceState('EXCITED');
+        return 'EXCITED';
 
       default:
         return null;

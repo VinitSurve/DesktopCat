@@ -18,6 +18,11 @@ import { MovementEngine } from './pet/MovementEngine';
 import { usePetStore } from './state/store';
 import type { PetSettings, MonitorInfo, EnvironmentInfo } from './types';
 import { PET_SIZES } from './types';
+import { globalScheduler } from './reminders/ReminderScheduler';
+import { globalTimerManager } from './timers/TimerManager';
+import { useReminderStore } from './reminders/ReminderStore';
+import { useTimerStore } from './timers/TimerStore';
+import { AssistantEventBus } from './assistant/AssistantEventBus';
 
 export function PetView() {
   const {
@@ -82,6 +87,13 @@ export function PetView() {
 
         setSettingsLoaded(true);
         setWindowReady(true);
+        
+        // Start Assistant Modules
+        await useReminderStore.getState().loadReminders();
+        await useTimerStore.getState().loadTimers();
+        globalScheduler.start();
+        globalTimerManager.start();
+
       } catch (err) {
         console.error('Failed to load initial state:', err);
         setSettingsLoaded(true);
@@ -90,7 +102,25 @@ export function PetView() {
     };
 
     loadInitialState();
+
+    // Cleanup
+    return () => {
+      globalScheduler.stop();
+      globalTimerManager.stop();
+    };
   }, []);
+
+  // ─── Listen for Assistant Events ─────────────────────────────────────────
+  
+  useEffect(() => {
+    const unsub = AssistantEventBus.subscribe((event) => {
+      const newState = behaviorRef.current.reactToEvent(event.type);
+      if (newState) {
+        setPetState(newState);
+      }
+    });
+    return unsub;
+  }, [setPetState]);
 
   // ─── Listen for Pause Toggle from Tray ───────────────────────────────
 
@@ -304,6 +334,14 @@ export function PetView() {
           break;
         case 'settings':
           invoke('open_settings_window').catch(() => {});
+          break;
+        case 'add_reminder':
+          invoke('open_settings_window').catch(() => {});
+          setTimeout(() => emit('open_settings_tab', 'reminders'), 500);
+          break;
+        case 'timers':
+          invoke('open_settings_window').catch(() => {});
+          setTimeout(() => emit('open_settings_tab', 'timers'), 500);
           break;
         case 'pause':
           setIsPaused(!isPaused);

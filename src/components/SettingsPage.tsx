@@ -5,10 +5,14 @@
 
 import { useEffect, useState } from 'react';
 import { invoke } from '@tauri-apps/api/core';
+import { listen } from '@tauri-apps/api/event';
 import type { PetSettings } from '../types';
 import './SettingsPage.css';
 
-type SettingsTab = 'general' | 'pet' | 'ai' | 'advanced';
+import { RemindersTab } from './RemindersTab';
+import { TimersTab } from './TimersTab';
+
+type SettingsTab = 'general' | 'pet' | 'ai' | 'reminders' | 'timers' | 'advanced';
 
 export function SettingsPage() {
   const [settings, setSettings] = useState<PetSettings | null>(null);
@@ -23,6 +27,14 @@ export function SettingsPage() {
   useEffect(() => {
     invoke<PetSettings>('get_settings').then(setSettings).catch(console.error);
     checkGeminiKey();
+
+    const unlisten = listen<SettingsTab>('open_settings_tab', (event) => {
+      setActiveTab(event.payload);
+    });
+
+    return () => {
+      unlisten.then(f => f());
+    };
   }, []);
 
   const checkGeminiKey = () => {
@@ -70,6 +82,8 @@ export function SettingsPage() {
   const tabs: { id: SettingsTab; label: string; icon: string }[] = [
     { id: 'general', label: 'General', icon: '🏠' },
     { id: 'pet', label: 'Pet & Behavior', icon: '🐱' },
+    { id: 'reminders', label: 'Reminders', icon: '⏰' },
+    { id: 'timers', label: 'Timers', icon: '⏱️' },
     { id: 'ai', label: 'AI & Privacy', icon: '✨' },
   ];
 
@@ -184,6 +198,9 @@ export function SettingsPage() {
             </div>
           </div>
         )}
+        {activeTab === 'reminders' && <RemindersTab />}
+        {activeTab === 'timers' && <TimersTab />}
+
         {activeTab === 'ai' && (
           <div className="settings-section">
             <h2>AI & Privacy</h2>

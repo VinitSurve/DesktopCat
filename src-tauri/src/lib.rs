@@ -16,9 +16,9 @@ mod ocr;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct PetSettings {
-    pub size: String,         // "small", "medium", "large"
-    pub speed: f64,           // movement speed multiplier
-    pub opacity: f64,         // 0.0 - 1.0
+    pub size: String, // "small", "medium", "large"
+    pub speed: f64,   // movement speed multiplier
+    pub opacity: f64, // 0.0 - 1.0
     pub always_on_top: bool,
     pub random_movement: bool,
     pub mouse_following: bool,
@@ -138,6 +138,18 @@ fn save_position(position: &PetPosition) {
     }
 }
 
+#[tauri::command]
+fn save_data(key: String, data: String) {
+    fs::write(config_dir().join(format!("{}.json", key)), data).ok();
+}
+
+#[tauri::command]
+fn load_data(key: String) -> String {
+    fs::read_to_string(config_dir().join(format!("{}.json", key)))
+        .unwrap_or_else(|_| "".to_string())
+}
+
+
 // ─── Tauri Commands ──────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -233,7 +245,7 @@ fn open_settings_window(app: tauri::AppHandle) {
         println!("SETTINGS: minimized: {:?}", win.is_minimized());
         println!("SETTINGS: focused: {:?}", win.is_focused());
         println!("SETTINGS: URL/path: /settings");
-        
+
         win.show().ok();
         win.unminimize().ok();
         win.set_focus().ok();
@@ -303,7 +315,7 @@ fn open_ai_result_window(app: tauri::AppHandle) {
             use cocoa::appkit::{NSWindow, NSWindowCollectionBehavior};
             use cocoa::base::id;
             use objc::{msg_send, sel, sel_impl};
-            
+
             if let Ok(ns_window_val) = w.ns_window() {
                 let ns_window = ns_window_val as id;
                 unsafe {
@@ -318,8 +330,12 @@ fn open_ai_result_window(app: tauri::AppHandle) {
                     let lvl: i64 = msg_send![ns_window, level];
                     let parent: id = msg_send![ns_window, parentWindow];
                     let cb: u64 = msg_send![ns_window, collectionBehavior];
-                    let parent_ptr = if parent.is_null() { "null".to_string() } else { format!("{:?}", parent) };
-                    
+                    let parent_ptr = if parent.is_null() {
+                        "null".to_string()
+                    } else {
+                        format!("{:?}", parent)
+                    };
+
                     println!("[AI WINDOW]");
                     println!("label = {}", w.label());
                     println!("is_visible = {}", is_vis);
@@ -359,21 +375,21 @@ fn open_ocr_selection_window(app: tauri::AppHandle) {
                     use cocoa::appkit::{NSWindow, NSWindowCollectionBehavior};
                     use cocoa::base::id;
                     use objc::{msg_send, sel, sel_impl};
-                    
+
                     if let Ok(ns_window_val) = win.ns_window() {
                         let ns_window = ns_window_val as id;
                         unsafe {
                             // MoveToActiveSpace (1<<1) + FullScreenAuxiliary (1<<4)
                             let behavior = (1 << 1) | (1 << 4);
                             let _: () = msg_send![ns_window, setCollectionBehavior:behavior];
-                            
+
                             // High level so it floats over EVERYTHING
                             let screen_saver_level = 1000;
                             let _: () = msg_send![ns_window, setLevel:screen_saver_level];
                         }
                     }
                 }
-                
+
                 // Maximize so it covers the entire display
                 win.maximize().ok();
                 win.show().ok();
@@ -413,7 +429,7 @@ pub(crate) fn do_open_ocr_result_window(app: tauri::AppHandle) {
                     use cocoa::appkit::{NSWindow, NSWindowCollectionBehavior};
                     use cocoa::base::id;
                     use objc::{msg_send, sel, sel_impl};
-                    
+
                     if let Ok(ns_window_val) = win.ns_window() {
                         let ns_window = ns_window_val as id;
                         unsafe {
@@ -435,7 +451,8 @@ fn close_ocr_result_window(app: tauri::AppHandle) {
 
 pub(crate) fn do_close_ocr_result_window(app: tauri::AppHandle) {
     if let Some(win) = app.get_webview_window("ocr_result") {
-        win.close().unwrap_or_else(|e| println!("Failed to close OCR result window: {:?}", e));
+        win.close()
+            .unwrap_or_else(|e| println!("Failed to close OCR result window: {:?}", e));
     }
 }
 
@@ -446,7 +463,8 @@ fn close_ocr_selection_window(app: tauri::AppHandle) {
 
 pub(crate) fn do_close_ocr_selection_window(app: tauri::AppHandle) {
     if let Some(win) = app.get_webview_window("ocr_selection") {
-        win.close().unwrap_or_else(|e| println!("Failed to close OCR selection window: {:?}", e));
+        win.close()
+            .unwrap_or_else(|e| println!("Failed to close OCR selection window: {:?}", e));
     }
 }
 
@@ -470,7 +488,7 @@ fn run_macos_diagnostics(window: &tauri::WebviewWindow) {
             println!("==================================================");
             println!("Tauri label: {}", window.label());
             println!("NSWindow pointer: {:?}", ns_window);
-            
+
             let ns_app: id = msg_send![objc::class!(NSApplication), sharedApplication];
             let activation_policy: i64 = msg_send![ns_app, activationPolicy];
             let policy_str = match activation_policy {
@@ -521,10 +539,11 @@ fn run_macos_diagnostics(window: &tauri::WebviewWindow) {
             let behavior: u64 = msg_send![ns_window, collectionBehavior];
             println!("collectionBehavior before: {}", behavior);
 
-            let new_behavior = NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces |
-                               NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary |
-                               NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle |
-                               NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary;
+            let new_behavior =
+                NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
+                    | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
+                    | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle
+                    | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary;
             ns_window.setCollectionBehavior_(new_behavior);
 
             let behavior_after: u64 = msg_send![ns_window, collectionBehavior];
@@ -534,7 +553,10 @@ fn run_macos_diagnostics(window: &tauri::WebviewWindow) {
             println!("styleMask: {}", style_mask);
 
             let frame: NSRect = msg_send![ns_window, frame];
-            println!("frame: x={}, y={}, w={}, h={}", frame.origin.x, frame.origin.y, frame.size.width, frame.size.height);
+            println!(
+                "frame: x={}, y={}, w={}, h={}",
+                frame.origin.x, frame.origin.y, frame.size.width, frame.size.height
+            );
 
             let _: () = msg_send![ns_window, orderFrontRegardless];
             println!("orderFrontRegardless: executed");
@@ -570,20 +592,20 @@ fn get_environment_info() -> Option<EnvironmentInfo> {
     #[cfg(target_os = "macos")]
     {
         use cocoa::base::id;
-        use objc::{msg_send, sel, sel_impl};
         use cocoa::foundation::{NSPoint, NSRect};
-        
+        use objc::{msg_send, sel, sel_impl};
+
         unsafe {
             // 1. Cursor Location
             let ns_event_class = objc::class!(NSEvent);
             let loc: NSPoint = msg_send![ns_event_class, mouseLocation];
-            
+
             // Convert bottom-left to top-left coordinate system using primary screen height
             let screen_class = objc::class!(NSScreen);
             let screens: id = msg_send![screen_class, screens];
             let primary_screen: id = msg_send![screens, objectAtIndex:0];
             let frame: NSRect = msg_send![primary_screen, frame];
-            
+
             let cursor_x = loc.x;
             let cursor_y = frame.size.height - loc.y;
 
@@ -597,7 +619,7 @@ fn get_environment_info() -> Option<EnvironmentInfo> {
             // 3. Active Application
             let workspace: id = msg_send![objc::class!(NSWorkspace), sharedWorkspace];
             let active_app: id = msg_send![workspace, frontmostApplication];
-            
+
             let name_id: id = msg_send![active_app, localizedName];
             let bundle_id_id: id = msg_send![active_app, bundleIdentifier];
 
@@ -605,24 +627,31 @@ fn get_environment_info() -> Option<EnvironmentInfo> {
                 String::new()
             } else {
                 let bytes: *const u8 = msg_send![name_id, UTF8String];
-                std::ffi::CStr::from_ptr(bytes as *const i8).to_string_lossy().into_owned()
+                std::ffi::CStr::from_ptr(bytes as *const i8)
+                    .to_string_lossy()
+                    .into_owned()
             };
 
             let bundle_id = if bundle_id_id.is_null() {
                 String::new()
             } else {
                 let bytes: *const u8 = msg_send![bundle_id_id, UTF8String];
-                std::ffi::CStr::from_ptr(bytes as *const i8).to_string_lossy().into_owned()
+                std::ffi::CStr::from_ptr(bytes as *const i8)
+                    .to_string_lossy()
+                    .into_owned()
             };
 
             return Some(EnvironmentInfo {
-                cursor: CursorInfo { x: cursor_x, y: cursor_y },
+                cursor: CursorInfo {
+                    x: cursor_x,
+                    y: cursor_y,
+                },
                 active_app: AppInfo { name, bundle_id },
                 idle_seconds,
             });
         }
     }
-    
+
     #[cfg(not(target_os = "macos"))]
     {
         None
@@ -637,18 +666,21 @@ fn apply_pet_window_level(app: tauri::AppHandle, always_on_top: bool) {
             use cocoa::appkit::{NSWindow, NSWindowCollectionBehavior};
             use cocoa::base::id;
             use objc::{msg_send, sel, sel_impl};
-            
+
             if let Ok(ns_window_val) = window.ns_window() {
                 let ns_window = ns_window_val as id;
                 let ns_window_ptr = ns_window as usize;
-                
+
                 // Move AppKit manipulations to the main thread
                 app.run_on_main_thread(move || {
                     let ns_window = ns_window_ptr as id;
                     unsafe {
                         let panel_class = objc::class!(NSPanel);
                         extern "C" {
-                            fn object_setClass(obj: *mut objc::runtime::Object, cls: *const objc::runtime::Class) -> *const objc::runtime::Class;
+                            fn object_setClass(
+                                obj: *mut objc::runtime::Object,
+                                cls: *const objc::runtime::Class,
+                            ) -> *const objc::runtime::Class;
                         }
                         object_setClass(ns_window as *mut objc::runtime::Object, panel_class);
 
@@ -658,18 +690,19 @@ fn apply_pet_window_level(app: tauri::AppHandle, always_on_top: bool) {
 
                         let level = if always_on_top { 1000 } else { 0 };
                         let _: () = msg_send![ns_window, setLevel:level];
-                        
+
                         let behavior: u64 = 341;
                         let _: () = msg_send![ns_window, setCollectionBehavior:behavior];
-                        
+
                         let _: () = msg_send![ns_window, setHidesOnDeactivate:false];
-                        
-                        // We must ensure the window is floating. 
+
+                        // We must ensure the window is floating.
                         // While setLevel does it, setting isFloatingPanel explicitly can help.
                         let _: () = msg_send![ns_window, setFloatingPanel:cocoa::base::YES];
 
                         // CRITICAL FOR HOVER: Accept mouse moved events
-                        let _: () = msg_send![ns_window, setAcceptsMouseMovedEvents:cocoa::base::YES];
+                        let _: () =
+                            msg_send![ns_window, setAcceptsMouseMovedEvents:cocoa::base::YES];
 
                         let _: () = msg_send![ns_window, orderFrontRegardless];
 
@@ -687,7 +720,8 @@ fn apply_pet_window_level(app: tauri::AppHandle, always_on_top: bool) {
                         println!("collectionBehavior: {}", cb);
                         println!("orderedIndex: {}", ordered_index);
                     }
-                }).unwrap();
+                })
+                .unwrap();
             }
         }
         #[cfg(not(target_os = "macos"))]
@@ -712,9 +746,13 @@ fn setup_tray(app: &AppHandle) -> Result<(), Box<dyn std::error::Error>> {
         app,
         "Status",
         true,
-        &[
-            &MenuItem::with_id(app, "status_active", "● Pet Active", false, None::<&str>)?,
-        ],
+        &[&MenuItem::with_id(
+            app,
+            "status_active",
+            "● Pet Active",
+            false,
+            None::<&str>,
+        )?],
     )?;
 
     let menu = Menu::with_items(
@@ -814,6 +852,7 @@ pub fn run() {
     };
 
     tauri::Builder::default()
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| {
             if let Some(pet_window) = app.get_webview_window("pet") {
                 pet_window.set_focus().ok();
@@ -821,6 +860,7 @@ pub fn run() {
         }))
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_clipboard_manager::init())
+        .plugin(tauri_plugin_notification::init())
         .manage(AppState {
             pet_state: Mutex::new(initial_state),
         })
@@ -831,6 +871,8 @@ pub fn run() {
             update_position,
             get_pet_paused,
             set_pet_paused,
+            save_data,
+            load_data,
             get_monitor_info,
             get_all_monitors,
             open_settings_window,

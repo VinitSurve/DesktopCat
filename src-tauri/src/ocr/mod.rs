@@ -18,12 +18,18 @@ pub async fn get_last_ocr_result() -> Result<Option<OCRResult>, String> {
 }
 
 #[tauri::command]
-pub async fn process_ocr_selection(app: tauri::AppHandle, x: f64, y: f64, w: f64, h: f64) -> Result<(), String> {
+pub async fn process_ocr_selection(
+    app: tauri::AppHandle,
+    x: f64,
+    y: f64,
+    w: f64,
+    h: f64,
+) -> Result<(), String> {
     // 1. Destroy selection window
     if let Some(win) = app.get_webview_window("ocr_selection") {
         let _ = win.close();
     }
-    
+
     // 2. Wait for it to disappear from screen
     std::thread::sleep(std::time::Duration::from_millis(300));
 
@@ -42,7 +48,7 @@ pub async fn process_ocr_selection(app: tauri::AppHandle, x: f64, y: f64, w: f64
         };
         *LAST_OCR_RESULT.lock().unwrap() = Some(res);
     }
-    
+
     // 3. Open result window
     crate::do_open_ocr_result_window(app);
     Ok(())

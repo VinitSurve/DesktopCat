@@ -42,12 +42,16 @@ export class InteractionEngine {
     }
     this.lastCursorPos = { ...cursor };
 
-    const dx = cursor.x - pos.x;
-    const dy = cursor.y - pos.y;
+    // Cat is roughly in the center of a 240x240 window
+    const catCenterX = pos.x + 120;
+    const catCenterY = pos.y + 120;
+    
+    const dx = cursor.x - catCenterX;
+    const dy = cursor.y - catCenterY;
     const dist = Math.sqrt(dx * dx + dy * dy);
 
     // Fast cursor -> ignore usually
-    if (cursorSpeed > 50 && this.cursorState !== 'CHASING') {
+    if (cursorSpeed > 2000 && this.cursorState !== 'CHASING') {
       this.setCursorState('IGNORING');
       return null;
     }

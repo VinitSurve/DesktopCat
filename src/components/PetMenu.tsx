@@ -22,6 +22,8 @@ interface PetMenuProps {
 const MENU_ITEMS: MenuItem[] = [
   { id: 'ai_assistant', label: 'AI Assistant', icon: '✨' },
   { id: 'ocr_screen', label: 'Understand Screen', icon: '🔎' },
+  { id: 'add_reminder', label: 'Add Reminder', icon: '⏰' },
+  { id: 'timers', label: 'Timers', icon: '⏱️' },
   { id: 'sleep', label: 'Sleep', icon: '😴' },
   { id: 'wake', label: 'Wake Up', icon: '🐾' },
   { id: 'wave', label: 'Wave', icon: '👋' },
