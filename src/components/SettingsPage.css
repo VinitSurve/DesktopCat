@@ -1,0 +1,282 @@
+/* SettingsPage styles — Native macOS-like settings UI */
+
+.settings-page {
+  display: flex;
+  height: 100vh;
+  background: #1a1b20;
+  color: #e8e8ec;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', sans-serif;
+  font-size: 13px;
+  user-select: none;
+}
+
+.settings-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────── */
+
+.settings-sidebar {
+  width: 180px;
+  background: rgba(26, 27, 32, 0.95);
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 48px 12px 16px;
+  display: flex;
+  flex-direction: column;
+  -webkit-app-region: drag;
+}
+
+.settings-sidebar__title {
+  font-size: 15px;
+  font-weight: 700;
+  color: rgba(255, 255, 255, 0.9);
+  padding: 0 8px 16px;
+  letter-spacing: -0.2px;
+}
+
+.settings-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  -webkit-app-region: no-drag;
+}
+
+.settings-sidebar__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.12s ease;
+  text-align: left;
+  font-family: inherit;
+}
+
+.settings-sidebar__item:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.settings-sidebar__item.active {
+  background: rgba(80, 220, 190, 0.12);
+  color: #50dcbe;
+}
+
+.settings-sidebar__icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+}
+
+.settings-sidebar__version {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.2);
+  padding: 0 8px;
+  -webkit-app-region: no-drag;
+}
+
+/* ─── Content ─────────────────────────────────────────────────────────── */
+
+.settings-content {
+  flex: 1;
+  padding: 48px 32px 32px;
+  overflow-y: auto;
+}
+
+.settings-section h2 {
+  font-size: 18px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 20px;
+  letter-spacing: -0.3px;
+}
+
+.settings-group {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 10px;
+  padding: 4px;
+  margin-bottom: 20px;
+}
+
+.settings-group--info {
+  background: transparent;
+  border: none;
+  padding: 12px 0;
+}
+
+/* ─── Toggle ──────────────────────────────────────────────────────────── */
+
+.settings-toggle {
+  display: flex;
+  align-items: center;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.12s ease;
+  flex-wrap: wrap;
+}
+
+.settings-toggle:hover {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.settings-toggle__label {
+  flex: 1;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+}
+
+.settings-toggle__desc {
+  width: 100%;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.35);
+  margin-top: 2px;
+  order: 3;
+}
+
+.settings-toggle input[type='checkbox'] {
+  display: none;
+}
+
+.settings-toggle__switch {
+  width: 36px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  position: relative;
+  transition: background 0.2s ease;
+  flex-shrink: 0;
+}
+
+.settings-toggle__switch::after {
+  content: '';
+  position: absolute;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.settings-toggle input:checked + .settings-toggle__switch {
+  background: #50dcbe;
+}
+
+.settings-toggle input:checked + .settings-toggle__switch::after {
+  transform: translateX(16px);
+}
+
+/* ─── Field ───────────────────────────────────────────────────────────── */
+
+.settings-field {
+  padding: 10px 12px;
+}
+
+.settings-field__label {
+  display: block;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  margin-bottom: 8px;
+}
+
+/* ─── Segmented Control ───────────────────────────────────────────────── */
+
+.settings-segmented {
+  display: flex;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.settings-segmented__btn {
+  flex: 1;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: inherit;
+}
+
+.settings-segmented__btn:hover {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.settings-segmented__btn.active {
+  background: rgba(80, 220, 190, 0.2);
+  color: #50dcbe;
+}
+
+/* ─── Slider ──────────────────────────────────────────────────────────── */
+
+.settings-slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-slider {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 2px;
+  outline: none;
+}
+
+.settings-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  background: #50dcbe;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  transition: transform 0.1s ease;
+}
+
+.settings-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+}
+
+.settings-slider__value {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  min-width: 36px;
+  text-align: right;
+}
+
+/* ─── Info ─────────────────────────────────────────────────────────────── */
+
+.settings-info {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.settings-info--muted {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 11px;
+  margin-top: 4px;
+}

@@ -1,0 +1,66 @@
+.ocr-selection-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    cursor: crosshair;
+    user-select: none;
+    -webkit-user-select: none;
+    z-index: 9999;
+  }
+  
+  .ocr-selection-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: none;
+  }
+  
+  .ocr-selection-rect {
+    position: absolute;
+    border: 2px solid #00ffcc;
+    background: rgba(0, 255, 204, 0.1);
+    /* We make the rectangle "punch out" the dimming overlay visually by using a backdrop-filter, 
+       or we can just keep the light background over the dim.
+       Since the dim is above everything, a light cyan tint over the dim works. */
+    box-shadow: 0 0 10px rgba(0, 255, 204, 0.5);
+    pointer-events: none;
+    z-index: 10000;
+  }
+  
+  .ocr-selection-label {
+    position: absolute;
+    bottom: -24px;
+    right: 0;
+    background: #00ffcc;
+    color: #000;
+    font-size: 11px;
+    font-family: system-ui, -apple-system, sans-serif;
+    padding: 2px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+    font-weight: bold;
+    pointer-events: none;
+  }
+  
+  .ocr-selection-hint {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 12px 24px;
+    border-radius: 20px;
+    font-family: system-ui, -apple-system, sans-serif;
+    font-size: 14px;
+    pointer-events: none;
+    z-index: 10001;
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }

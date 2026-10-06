@@ -1,0 +1,87 @@
+/* PetMenu styles — glassmorphic compact menu */
+
+.pet-menu {
+  background: rgba(30, 32, 40, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 6px;
+  min-width: 150px;
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    0 2px 8px rgba(0, 0, 0, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  z-index: 1000;
+  animation: menuFadeIn 0.15s ease-out;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+@keyframes menuFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.pet-menu__header {
+  color: rgba(255, 255, 255, 0.4);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  padding: 6px 10px 4px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+.pet-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  text-align: left;
+  font-family: inherit;
+}
+
+.pet-menu__item:hover {
+  background: rgba(80, 220, 190, 0.15);
+}
+
+.pet-menu__item:active {
+  background: rgba(80, 220, 190, 0.25);
+  transform: scale(0.98);
+}
+
+.pet-menu__item:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.pet-menu__item:disabled:hover {
+  background: transparent;
+}
+
+.pet-menu__icon {
+  font-size: 14px;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.pet-menu__label {
+  flex: 1;
+  white-space: nowrap;
+}

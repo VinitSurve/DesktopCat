@@ -1,0 +1,62 @@
+# Dependencies
+node_modules/
+
+# Vite / frontend builds
+dist/
+build/
+coverage/
+
+# Rust
+src-tauri/target/
+target/
+
+# macOS
+.DS_Store
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+logs/
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Credentials / certificates
+*.pem
+*.key
+*.p12
+*.pfx
+credentials.json
+secrets.json
+service-account.json
+token.json
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.example.json
+
+# Temporary files
+tmp/
+temp/
+.cache/
+
+# OCR / screen captures
+ocr_captures/
+screenshots/
+captures/
+
+# Local AI data
+ollama/
+models/
+
+# OS/application generated files
+*.dmg
+*.app
