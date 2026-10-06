@@ -41,11 +41,12 @@ export function AIAssistantMenu({ x, y, onAction, onClose }: Props) {
     };
   }, [onClose]);
 
+  const menuHeight = Math.min(AI_ACTIONS.length * 38 + 40, 300);
   const menuStyle: React.CSSProperties = {
     position: 'fixed',
-    left: Math.min(x, window.innerWidth - 200),
-    top: Math.min(y, window.innerHeight - Math.min(AI_ACTIONS.length * 38 + 40, 300) - 16),
-    maxHeight: '300px',
+    left: Math.max(0, Math.min(x, window.innerWidth - 200)),
+    top: Math.max(0, Math.min(y, window.innerHeight - menuHeight - 16)),
+    maxHeight: '100vh',
     overflowY: 'auto',
   };
 

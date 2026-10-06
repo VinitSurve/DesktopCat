@@ -56,11 +56,13 @@ export function PetMenu({ x, y, onAction, onClose }: PetMenuProps) {
     };
   }, [onClose]);
 
-  // Position the menu within the window bounds
+  const menuHeight = MENU_ITEMS.length * 38 + 16;
   const menuStyle: React.CSSProperties = {
     position: 'fixed',
-    left: Math.min(x, window.innerWidth - 160),
-    top: Math.min(y, window.innerHeight - MENU_ITEMS.length * 38 - 16),
+    left: Math.max(0, Math.min(x, window.innerWidth - 160)),
+    top: Math.max(0, Math.min(y, window.innerHeight - menuHeight)),
+    maxHeight: '100vh',
+    overflowY: 'auto',
   };
 
   return (
